@@ -1,0 +1,118 @@
+{
+  "_template_version": "3.0",
+  "_description": "一个实验 = 一个文件。包含论文来源、矿石特征、药剂配方、实验结果。所有下游脚本直接读取此格式。",
+
+  "paper": {
+    "paper_id": null,
+    "title": null,
+    "authors": [],
+    "year": null,
+    "doi": null,
+    "url": null,
+    "journal": null
+  },
+
+  "experiment_id": null,
+  "experiment_name": null,
+  "test_variable": null,
+  "data_location": null,
+
+  "ore_profile": {
+    "ore_type": null,
+    "ore_type_standard": null,
+    "deposit_name": null,
+    "deposit_region": null,
+    "valuable_minerals": [
+      {"name": null, "composition_pct": null}
+    ],
+    "gangue_minerals": [
+      {"name": null, "composition_pct": null, "role": null}
+    ],
+    "associated_minerals": [
+      {"name": null, "composition_pct": null}
+    ],
+    "head_assays": [
+      {"analyte": null, "basis": null, "value_pct": null, "unit": null}
+    ],
+    "particle_size": {
+      "d80_um": null,
+      "d50_um": null,
+      "size_fraction_text": null,
+      "grind_method": null,
+      "grind_time_min": null
+    },
+    "specific_gravity": null,
+    "liberation_degree_pct": null,
+    "slime_or_fines_note": null,
+    "ore_features_text": null
+  },
+
+  "sample_override": {
+    "sample_type": null,
+    "pretreatment": null,
+    "size_fraction_used": null
+  },
+
+  "flotation_conditions": {
+    "cell_type": null,
+    "cell_volume_ml": null,
+    "pulp_density_pct": null,
+    "solid_mass_g": null,
+    "water_type": null,
+    "temperature_c": null,
+    "impeller_speed_rpm": null,
+    "conditioning_total_min": null,
+    "flotation_time_min": null,
+    "airflow_rate": null
+  },
+
+  "reagent_scheme": [
+    {
+      "name": null,
+      "name_standard": null,
+      "role": null,
+      "chemical_formula": null,
+      "target_ph": null,
+      "ph_range_min": null,
+      "ph_range_max": null,
+      "dosage_gpt": null,
+      "dosage_original_text": null,
+      "conditioning_min": null,
+      "order": null,
+      "target_mineral": null,
+      "environmental_warning": false,
+      "note": null
+    }
+  ],
+
+  "results": {
+    "products": [
+      {
+        "analyte": null,
+        "basis": null,
+        "recovery_pct": null,
+        "grade_value": null,
+        "grade_unit": null,
+        "enrichment_ratio": null
+      }
+    ],
+    "mass_pull_pct": null,
+    "selectivity_index": null,
+    "stage": null,
+    "concentrate_type": null,
+    "is_reported_best": null
+  },
+
+  "recommendation_signals": {
+    "is_promising": null,
+    "recommendation_score": null,
+    "grade_rating": null,
+    "grade_verdict": null,
+    "grade_breakdown": null,
+    "grade_deductions": null,
+    "total_deducted": null,
+    "key_results": null
+  },
+
+  "notes": null
+}

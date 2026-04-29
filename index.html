@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⛏️ 浮选助手</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;600;700&display=swap');
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'DM Sans','Noto Sans SC',sans-serif;background:#0F1419;color:#C8D6E5;overflow:hidden}
+  ::-webkit-scrollbar{width:5px} ::-webkit-scrollbar-track{background:transparent} ::-webkit-scrollbar-thumb{background:#2A3441;border-radius:3px}
+  ::placeholder{color:#4A5568} textarea:focus,input:focus,button:focus{outline:none} button{font-family:inherit}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes popIn{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
+  @keyframes pulse{0%,100%{opacity:.6}50%{opacity:1}}
+
+  #app{display:flex;height:100vh;width:100vw}
+  .sidebar{width:264px;min-width:264px;background:#131A22;border-right:1px solid #1E2A36;display:flex;flex-direction:column}
+  .sidebar-head{display:flex;align-items:center;gap:12px;padding:20px 16px;border-bottom:1px solid #1E2A36}
+  .logo-icon{font-size:26px;width:42px;height:42px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1A2332,#243447);border-radius:11px;border:1px solid #2A3441}
+  .logo-title{font-size:15px;font-weight:700;color:#E2E8F0;letter-spacing:.4px}
+  .logo-sub{font-size:9.5px;color:#5A6A7A;letter-spacing:1.6px;text-transform:uppercase;margin-top:2px}
+  .section{padding:14px 10px;border-bottom:1px solid #1E2A36}
+  .section-label{font-size:9.5px;font-weight:600;color:#5A6A7A;letter-spacing:1.6px;text-transform:uppercase;margin-bottom:8px;padding-left:6px}
+  .action-btn{display:flex;align-items:center;gap:9px;width:100%;padding:8px 9px;background:transparent;border:1px solid transparent;border-radius:7px;cursor:pointer;color:#8899AA;font-size:13px;transition:all .12s;margin-bottom:1px;text-align:left}
+  .action-btn:hover{background:#1A2332;border-color:#2A3441;color:#C8D6E5}
+  .action-icon{width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:#1A2332;border-radius:6px;flex-shrink:0;font-size:15px}
+  .action-label{flex:1;font-weight:500}
+  .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+  .stat-box{background:#1A2332;border-radius:7px;padding:9px;text-align:center;border:1px solid #1E2A36}
+  .stat-val{font-size:17px;font-weight:700;color:#E2E8F0;font-family:'JetBrains Mono',monospace}
+  .stat-lbl{font-size:9.5px;color:#5A6A7A;margin-top:2px}
+  .sidebar-foot{margin-top:auto;padding:12px 16px;border-top:1px solid #1E2A36;font-size:9.5px;color:#3A4A5A}
+
+  .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+  .top-bar{display:flex;align-items:center;justify-content:space-between;padding:13px 22px;border-bottom:1px solid #1E2A36;background:#131A22}
+  .top-title{font-size:13.5px;font-weight:600;color:#8899AA}
+  .top-btns{display:flex;gap:8px}
+  .top-btn{background:#1A2332;border:1px solid #2A3441;border-radius:7px;padding:6px 12px;cursor:pointer;color:#6A7A8A;font-size:12px;display:flex;align-items:center;gap:5px}
+  .top-btn:hover{border-color:#3A4A5A;color:#8899AA}
+
+  .chat-area{flex:1;overflow-y:auto;padding:22px;display:flex;flex-direction:column;gap:14px}
+  .msg-row{display:flex;align-items:flex-start;gap:9px;animation:fadeUp .22s ease}
+  .msg-row.user{justify-content:flex-end} .msg-row.bot{justify-content:flex-start}
+  .bot-avatar{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#1A2332,#243447);border:1px solid #2A3441;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+  .bubble{max-width:72%;border-radius:13px;padding:11px 15px;min-width:60px}
+  .bubble.user{background:linear-gradient(135deg,#1B3A5C,#1A3050);border:1px solid #254A6E;border-bottom-right-radius:3px}
+  .bubble.bot{background:#1A2332;border:1px solid #1E2A36;border-bottom-left-radius:3px}
+  .bubble-time{font-size:9.5px;color:#4A5A6A;margin-top:5px;text-align:right}
+
+  /* Progress indicator */
+  .progress-bar{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#1A2332;border:1px solid #1E2A36;border-radius:10px;max-width:72%;animation:fadeUp .2s ease}
+  .progress-spinner{width:16px;height:16px;border:2px solid #2A3441;border-top-color:#D4956A;border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0}
+  .progress-text{font-size:12.5px;color:#8899AA;animation:pulse 2s ease-in-out infinite}
+  .progress-steps{margin-top:4px;font-size:11px;color:#5A6A7A;line-height:1.6}
+  .progress-step{padding:2px 0}
+  .progress-step.done{color:#7AAF8B}
+  .progress-step.active{color:#D4956A}
+
+  /* Markdown rendering */
+  .md-content{font-size:13.5px;line-height:1.75;word-break:break-word}
+  .md-content p{margin:0 0 8px}
+  .md-content p:last-child{margin-bottom:0}
+  .md-content h1,.md-content h2,.md-content h3{color:#E2E8F0;margin:12px 0 6px;font-weight:600}
+  .md-content h1{font-size:16px} .md-content h2{font-size:14.5px} .md-content h3{font-size:13.5px}
+  .md-content ul,.md-content ol{padding-left:20px;margin:4px 0 8px}
+  .md-content li{margin:2px 0}
+  .md-content code{background:#0F1419;padding:1px 5px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#D4956A}
+  .md-content pre{background:#0F1419;border-radius:8px;padding:12px;margin:8px 0;overflow-x:auto;border:1px solid #1E2A36}
+  .md-content pre code{background:none;padding:0;color:#C8D6E5;font-size:12px;line-height:1.6}
+  .md-content table{border-collapse:collapse;margin:8px 0;width:100%;font-size:12.5px}
+  .md-content th,.md-content td{border:1px solid #2A3441;padding:6px 10px;text-align:left}
+  .md-content th{background:#1A2332;color:#E2E8F0;font-weight:600}
+  .md-content blockquote{border-left:3px solid #D4956A;padding-left:12px;color:#8899AA;margin:8px 0}
+  .md-content strong{color:#E2E8F0}
+  .md-content a{color:#7AADBA;text-decoration:none}
+  .md-content a:hover{text-decoration:underline}
+  .md-content hr{border:none;border-top:1px solid #2A3441;margin:12px 0}
+  .md-content img{max-width:100%;border-radius:8px}
+
+  .input-bar{padding:14px 22px 18px;border-top:1px solid #1E2A36;background:#131A22}
+  .input-wrap{display:flex;align-items:flex-end;gap:9px;background:#1A2332;border:1px solid #2A3441;border-radius:13px;padding:3px 3px 3px 15px;transition:border-color .12s}
+  .input-wrap:focus-within{border-color:#3A5A7A}
+  .input-wrap textarea{flex:1;border:none;background:transparent;color:#C8D6E5;font-size:13.5px;font-family:inherit;line-height:1.5;resize:none;padding:9px 0;min-height:20px;max-height:110px}
+  .send-btn{width:38px;height:38px;border-radius:9px;border:none;background:#D4956A;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .12s}
+  .send-btn:disabled{opacity:.35;cursor:default} .send-btn:not(:disabled):hover{background:#C4854A}
+  .input-hint{font-size:10.5px;color:#3A4A5A;margin-top:7px;text-align:center}
+
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:200;backdrop-filter:blur(3px)}
+  .modal{width:420px;max-width:90vw;background:#131A22;border:1px solid #2A3441;border-radius:14px;overflow:hidden;animation:popIn .18s ease;box-shadow:0 20px 56px rgba(0,0,0,.5)}
+  .modal-head{display:flex;justify-content:space-between;align-items:center;padding:16px 18px;border-bottom:1px solid #1E2A36}
+  .modal-title{font-size:14.5px;font-weight:600;color:#E2E8F0}
+  .modal-close{background:none;border:none;color:#5A6A7A;font-size:17px;cursor:pointer;padding:3px 7px;border-radius:5px}
+  .modal-close:hover{color:#8899AA;background:#1A2332}
+  .modal-body{padding:18px} .modal-foot{display:flex;justify-content:flex-end;gap:9px;padding:14px 18px;border-top:1px solid #1E2A36}
+  .form-group{margin-bottom:12px}
+  .form-label{display:block;font-size:11.5px;font-weight:600;color:#7A8A9A;margin-bottom:5px}
+  .form-input{width:100%;padding:9px 11px;background:#0F1419;border:1px solid #2A3441;border-radius:7px;color:#C8D6E5;font-size:12.5px;font-family:inherit;transition:border-color .12s}
+  .form-input:focus{border-color:#3A5A7A}
+  .btn-cancel{padding:8px 16px;background:#1A2332;border:1px solid #2A3441;border-radius:7px;color:#8899AA;cursor:pointer;font-size:12.5px}
+  .btn-submit{padding:8px 20px;border:none;border-radius:7px;color:#fff;cursor:pointer;font-size:12.5px;font-weight:600}
+  .btn-submit:disabled{opacity:.4;cursor:default}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.0/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script type="text/babel">
+const { useState, useRef, useEffect, useCallback } = React;
+
+// Setup marked with highlight.js
+marked.setOptions({
+  highlight: (code, lang) => {
+    if (lang && hljs.getLanguage(lang)) return hljs.highlight(code, { language: lang }).value;
+    return hljs.highlightAuto(code).value;
+  },
+  breaks: true,
+  gfm: true,
+});
+
+function renderMd(text) {
+  if (!text) return "";
+  return marked.parse(text);
+}
+
+const ACTIONS = [
+  { id:"search", label:"搜索论文", icon:"🔎", color:"#D4956A" },
+  { id:"extract", label:"提取配方", icon:"📄", color:"#7AADBA" },
+  { id:"recommend", label:"推荐配方", icon:"⭐", color:"#C4A35A" },
+  { id:"build_index", label:"建立索引", icon:"🗄️", color:"#8B9DAF", prompt:"请建立FAISS向量索引" },
+  { id:"export_csv", label:"导出数据集", icon:"📊", color:"#9AAF8B", prompt:"请将配方数据导出为CSV训练数据集" },
+  { id:"grade_all", label:"批量评分", icon:"⚡", color:"#AF8B9D", prompt:"请对数据库中所有配方进行批量评分" },
+  { id:"status", label:"数据库状态", icon:"📋", color:"#7A8A9A", prompt:"请查看数据库当前状态" },
+];
+
+const ORE_FIELDS = [
+  { key:"ore_type", label:"矿石类型", ph:"如：氧化锡矿" },
+  { key:"gangue", label:"主要脉石", ph:"如：石英、方解石" },
+  { key:"gangue_secondary", label:"次要脉石", ph:"可选" },
+  { key:"d80_um", label:"D80 (μm)", ph:"如：45" },
+  { key:"sno2_pct", label:"SnO₂ (%)", ph:"可选" },
+  { key:"pain_point", label:"痛点", ph:"如：回收率低" },
+];
+
+function OreModal({ mode, onSubmit, onClose }) {
+  const [p, setP] = useState({});
+  const go = () => {
+    const filled = Object.entries(p).filter(([_,v])=>v&&v.trim()).map(([k,v])=>`${k}: ${v}`).join(", ");
+    onSubmit(mode==="search" ? `请帮我搜索浮选论文，矿石参数：${filled}` : `请根据以下矿石信息推荐配方：${filled}`);
+    onClose();
+  };
+  return (
+    <div className="modal-bg" onClick={onClose}>
+      <div className="modal" onClick={e=>e.stopPropagation()}>
+        <div className="modal-head">
+          <span className="modal-title">{mode==="search"?"⛏️ 搜索论文":"🔍 推荐配方"}</span>
+          <button className="modal-close" onClick={onClose}>✕</button>
+        </div>
+        <div className="modal-body">
+          {ORE_FIELDS.map(f=>(
+            <div className="form-group" key={f.key}>
+              <label className="form-label">{f.label}</label>
+              <input className="form-input" placeholder={f.ph} value={p[f.key]||""} onChange={e=>setP({...p,[f.key]:e.target.value})} onKeyDown={e=>e.key==="Enter"&&go()} />
+            </div>
+          ))}
+        </div>
+        <div className="modal-foot">
+          <button className="btn-cancel" onClick={onClose}>取消</button>
+          <button className="btn-submit" style={{background:mode==="search"?"#D4956A":"#C4A35A"}} disabled={!p.ore_type?.trim()} onClick={go}>
+            {mode==="search"?"开始搜索":"获取推荐"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [msgs, setMsgs] = useState([
+    { role:"bot", text:"⛏️ 浮选助手已就绪。\n\n使用左侧快捷操作或直接输入需求。", ts:Date.now() }
+  ]);
+  const [input, setInput] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState([]);  // array of progress step strings
+  const [modal, setModal] = useState(null);
+  const [stats, setStats] = useState({});
+  const endRef = useRef(null);
+  const taRef = useRef(null);
+  const saveCount = useRef(0);
+  const saveTotal = useRef(0);
+
+  useEffect(()=>{ endRef.current?.scrollIntoView({behavior:"smooth"}); },[msgs, progress]);
+  useEffect(()=>{ fetch("/api/status").then(r=>r.json()).then(setStats).catch(()=>{}); },[]);
+
+  const send = useCallback(async (text)=>{
+    if(!text.trim()||busy) return;
+    setMsgs(prev=>[...prev, { role:"user", text:text.trim(), ts:Date.now() }]);
+    setInput(""); setBusy(true); setProgress([]);
+    saveCount.current = 0; saveTotal.current = 0;
+
+    try {
+      const res = await fetch("/api/chat", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({ message:text.trim() }),
+      });
+
+      // SSE stream
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let finalReply = null;
+      let streamDone = false;
+
+      while (!streamDone) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        // Parse SSE events from buffer
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        let eventType = null;
+        for (const line of lines) {
+          if (line.startsWith("event: ")) {
+            eventType = line.slice(7).trim();
+          } else if (line.startsWith("data: ") && eventType) {
+            try {
+              const data = JSON.parse(line.slice(6));
+              if (eventType === "progress") {
+                const stepText = data.data || "";
+                const stepType = data.type || "";
+
+                if (stepType === "intermediate") {
+                  // Paper overview — render as a chat message immediately
+                  setMsgs(prev=>[...prev, { role:"bot", text:stepText, ts:Date.now() }]);
+                  // Try to extract total experiment count
+                  const m = stepText.match(/(\d+)\s*个(?:独立)?实验/);
+                  if (m) saveTotal.current = parseInt(m[1]);
+                  saveCount.current = 0;
+                } else if (stepType === "tool" && stepText.includes("保存配方")) {
+                  saveCount.current++;
+                  const countLabel = saveTotal.current > 0
+                    ? `（${saveCount.current}/${saveTotal.current}）`
+                    : `（${saveCount.current}）`;
+                  setProgress(prev => {
+                    const updated = prev.map(s => s.startsWith("⏳") ? s.replace("⏳","✅") : s);
+                    return [...updated, `⏳ 💾 正在保存配方 ${countLabel}...`];
+                  });
+                } else if (stepType === "thinking") {
+                  setProgress([stepText]);
+                } else {
+                  setProgress(prev => {
+                    const updated = prev.map(s => s.startsWith("⏳") ? s.replace("⏳","✅") : s);
+                    return [...updated, `⏳ ${stepText}`];
+                  });
+                }
+              } else if (eventType === "done") {
+                finalReply = data.reply;
+                streamDone = true;
+              } else if (eventType === "error") {
+                finalReply = `❌ ${data.message}`;
+                streamDone = true;
+              } else if (eventType === "close") {
+                streamDone = true;
+              }
+            } catch(e) {}
+            eventType = null;
+          } else if (line === "") {
+            eventType = null;
+          }
+        }
+      }
+
+      // Clean up reader
+      try { reader.cancel(); } catch(e) {}
+
+      setProgress([]);
+      if (finalReply !== null) {
+        setMsgs(prev=>[...prev, { role:"bot", text:finalReply, ts:Date.now() }]);
+      }
+      fetch("/api/status").then(r=>r.json()).then(setStats).catch(()=>{});
+
+    } catch(err) {
+      setProgress([]);
+      setMsgs(prev=>[...prev, { role:"bot", ts:Date.now(), text:`❌ ${err.message}` }]);
+    } finally {
+      setBusy(false);
+      setTimeout(()=>taRef.current?.focus(), 80);
+    }
+  },[busy]);
+
+  const resetChat = async () => {
+    await fetch("/api/reset", {method:"POST", headers:{"Content-Type":"application/json"}, body:"{}"}).catch(()=>{});
+    setMsgs([{ role:"bot", text:"⛏️ 对话已重置。", ts:Date.now() }]);
+  };
+  const reloadSkills = async () => {
+    const res = await fetch("/api/reload", {method:"POST", headers:{"Content-Type":"application/json"}, body:"{}"}).catch(()=>({}));
+    setMsgs(prev=>[...prev, { role:"bot", text:"🔄 技能已重载，对话已重置。", ts:Date.now() }]);
+  };
+
+  const handleAction = a => {
+    if(a.id==="search"||a.id==="recommend") setModal(a.id);
+    else if(a.id==="extract") {
+      setMsgs(prev=>[...prev, { role:"bot", ts:Date.now(),
+        text:"📄 请在输入框中提供论文信息：\n\n- PDF 文件路径：如 `/Users/xxx/paper.pdf`\n- 论文 URL：如 `https://arxiv.org/abs/...`\n- 或直接说"提取这篇论文的配方""
+      }]);
+    } else if(a.prompt) send(a.prompt);
+  };
+
+  const onKey = e => { if(e.key==="Enter"&&!e.shiftKey){ e.preventDefault(); send(input); } };
+  const fmtTime = ts => new Date(ts).toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit"});
+
+  return (
+    <>
+      <div className="sidebar">
+        <div className="sidebar-head">
+          <div className="logo-icon">⛏️</div>
+          <div><div className="logo-title">浮选助手</div><div className="logo-sub">DeepSeek Agent</div></div>
+        </div>
+        <div className="section">
+          <div className="section-label">快捷操作</div>
+          {ACTIONS.map(a=>(
+            <button className="action-btn" key={a.id} onClick={()=>handleAction(a)} disabled={busy}>
+              <div className="action-icon" style={{color:a.color}}>{a.icon}</div>
+              <span className="action-label">{a.label}</span>
+            </button>
+          ))}
+        </div>
+        <div className="section">
+          <div className="section-label">数据库</div>
+          <div className="stats-grid">
+            <div className="stat-box"><div className="stat-val">{stats.recipe_files??'—'}</div><div className="stat-lbl">配方文件</div></div>
+            <div className="stat-box"><div className="stat-val">{stats.synonym_entries??'—'}</div><div className="stat-lbl">近义词</div></div>
+            <div className="stat-box"><div className="stat-val">{stats.faiss_index_exists?'✓':'✗'}</div><div className="stat-lbl">索引</div></div>
+            <div className="stat-box"><div className="stat-val">{stats.csv_rows??'—'}</div><div className="stat-lbl">CSV行</div></div>
+          </div>
+        </div>
+        <div className="sidebar-foot">DeepSeek Agent · v2.0</div>
+      </div>
+
+      <div className="main">
+        <div className="top-bar">
+          <div className="top-title">锡矿浮选配方专家系统</div>
+          <div className="top-btns">
+            <button className="top-btn" onClick={reloadSkills}>🔄 重载技能</button>
+            <button className="top-btn" onClick={resetChat}>🗑️ 重置对话</button>
+          </div>
+        </div>
+
+        <div className="chat-area">
+          {msgs.map((m,i)=>(
+            <div className={`msg-row ${m.role==="user"?"user":"bot"}`} key={i}>
+              {m.role!=="user"&&<div className="bot-avatar">⛏️</div>}
+              <div className={`bubble ${m.role==="user"?"user":"bot"}`}>
+                {m.role==="user"
+                  ? <div className="md-content" style={{whiteSpace:"pre-wrap"}}>{m.text}</div>
+                  : <div className="md-content" dangerouslySetInnerHTML={{__html: renderMd(m.text)}} />
+                }
+                {m.ts&&<div className="bubble-time">{fmtTime(m.ts)}</div>}
+              </div>
+            </div>
+          ))}
+
+          {/* Progress indicator */}
+          {busy && (
+            <div className="msg-row bot">
+              <div className="bot-avatar">⛏️</div>
+              <div className="progress-bar">
+                <div className="progress-spinner"/>
+                <div>
+                  <div className="progress-text">
+                    {progress.length > 0
+                      ? progress[progress.length-1].replace(/^[⏳✅]\s*/, '')
+                      : "正在处理..."}
+                  </div>
+                  {progress.length > 1 && (
+                    <div className="progress-steps">
+                      {progress.slice(0, -1).map((s,i) => (
+                        <div key={i} className={`progress-step ${s.startsWith("✅")?"done":"active"}`}>{s}</div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+          <div ref={endRef}/>
+        </div>
+
+        <div className="input-bar">
+          <div className="input-wrap">
+            <textarea ref={taRef} value={input} onChange={e=>setInput(e.target.value)} onKeyDown={onKey}
+              placeholder="输入矿石信息或描述你的需求..." rows={1} disabled={busy} />
+            <button className="send-btn" onClick={()=>send(input)} disabled={!input.trim()||busy}>
+              {busy
+                ? <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" style={{animation:"spin 1s linear infinite"}}><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                : <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              }
+            </button>
+          </div>
+          <div className="input-hint">Enter 发送 · Shift+Enter 换行</div>
+        </div>
+      </div>
+
+      {(modal==="search"||modal==="recommend")&&<OreModal mode={modal} onSubmit={send} onClose={()=>setModal(null)} />}
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("app")).render(<App/>);
+</script>
+</body>
+</html>

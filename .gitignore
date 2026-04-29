@@ -1,0 +1,19 @@
+# Data (user-generated, not committed)
+database/recipes/*.json
+database/datasets/*.csv
+database/synonyms.json
+database/faiss_index/
+
+# Keep directory structure
+!database/recipes/.gitkeep
+!database/datasets/.gitkeep
+!database/faiss_index/.gitkeep
+
+# Environment
+.env
+__pycache__/
+*.pyc
+.DS_Store
+
+# Models cache
+.cache/
