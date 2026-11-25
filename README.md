@@ -26,7 +26,7 @@ Browser (index.html)
 ### 1. Clone
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/tin-flotation-agent.git
+git clone https://github.com/yiyuqian0912/tin-flotation-agent.git
 cd tin-flotation-agent
 ```
 
